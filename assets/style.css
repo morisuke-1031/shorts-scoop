@@ -110,22 +110,13 @@ input{width:100%}
   background: rgba(17,24,35,.75);
   padding:12px;
   display:grid;
-  grid-template-columns: 56px 120px 1fr auto; /* ★サムネ列追加 */
+  grid-template-columns: 56px 120px 1fr auto; /* rank, thumb, main, button */
   gap:12px;
   align-items:center;
 }
-@media (max-width: 860px){
-  .item{
-    grid-template-columns: 56px 96px 1fr;
-    grid-template-areas:
-      "rank thumb main"
-      "rank thumb go";
-    align-items:start;
-  }
-  .rank{grid-area:rank}
-  .thumbWrap{grid-area:thumb}
-  .main{grid-area:main}
-  .go{grid-area:go; justify-content:flex-start; margin-top:8px}
+@media (max-width: 720px){
+  .item{grid-template-columns:56px 1fr auto}
+  .thumbWrap{display:none}
 }
 
 .rank{
@@ -137,25 +128,25 @@ input{width:100%}
   font-size:18px; font-weight:800;
 }
 
-.thumbWrap{display:flex; align-items:center; justify-content:center}
-.thumb{
+.thumbWrap{
   width:120px;
-  height:68px;
-  object-fit:cover;
+  aspect-ratio: 16/9;
   border-radius:12px;
-  border:1px solid #2b3b55;
-  background: rgba(255,255,255,0.06);
+  overflow:hidden;
+  border:1px solid #24354f;
+  background:#0e1622;
+}
+.thumb{
+  width:100%;
+  height:100%;
+  display:block;
+  object-fit:cover;
 }
 .thumbPh{
-  display:block;
-  width:120px;
-  height:68px;
-  border-radius:12px;
-  border:1px solid #2b3b55;
-  background: linear-gradient(135deg, rgba(255,255,255,0.06), rgba(255,255,255,0.02));
+  width:100%;
+  height:100%;
+  background: linear-gradient(135deg, #0e1622 0%, #0f1a28 100%);
 }
-
-.main{min-width:0}
 
 .title{font-size:14px; font-weight:700; margin-bottom:6px}
 .meta2{font-size:12px; color:var(--muted); display:flex; gap:10px; flex-wrap:wrap}
@@ -167,9 +158,8 @@ input{width:100%}
   color:var(--muted);
 }
 .views{color:var(--good); font-weight:800}
-.go{
-  display:flex; gap:10px; align-items:center;
-}
+
+.go{display:flex; gap:10px; align-items:center}
 .go a{
   display:inline-flex;
   align-items:center;
@@ -181,5 +171,6 @@ input{width:100%}
   color:var(--text);
 }
 .go a:hover{border-color:#3a6fb8; text-decoration:none}
+
 .footer{margin:14px 0 30px; color:var(--muted); font-size:12px}
 .muted{color:var(--muted)}

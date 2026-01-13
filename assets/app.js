@@ -6,6 +6,7 @@ function fmtNum(n){
   if (!Number.isFinite(x)) return String(n);
   return x.toLocaleString("ja-JP");
 }
+
 function fmtAgeSec(sec){
   if (sec == null) return "-";
   const s = Number(sec);
@@ -15,13 +16,28 @@ function fmtAgeSec(sec){
   return `${Math.floor(s/86400)}日前`;
 }
 
+function escapeHtml(str){
+  return String(str)
+    .replaceAll("&", "&amp;")
+    .replaceAll("<", "&lt;")
+    .replaceAll(">", "&gt;")
+    .replaceAll('"', "&quot;")
+    .replaceAll("'", "&#39;");
+}
+
+function thumbFallback(url){
+  // maxres が無い動画があるので mqdefault に落とす
+  // https://i.ytimg.com/vi/<id>/maxresdefault.jpg -> mqdefault.jpg
+  if (!url) return "";
+  return String(url).replace("/maxresdefault.jpg", "/mqdefault.jpg");
+}
+
 let RAW = null;
 
 async function loadLatest(){
   $("#headline").textContent = "読み込み中...";
   $("#hint").textContent = "—";
 
-  // cache-bust
   const url = `./latest.json?t=${Date.now()}`;
   const res = await fetch(url, { cache: "no-store" });
   if(!res.ok) throw new Error(`latest.json load failed: ${res.status}`);
@@ -58,10 +74,8 @@ function render(){
   }
 
   const shown = items.slice(0, limit);
-
   $("#countInfo").textContent = `表示: ${shown.length} / ${items.length}（全体: ${RAW.items.length}）`;
 
-  // 今日の結論（上位1〜3のタイトルから“真似るべき型”を雑に言う）
   if (shown.length > 0){
     const top = shown[0];
     $("#headline").textContent = `今は「${top.topic || "この系統"}」が強い。まずは1本、これを真似て作る。`;
@@ -78,7 +92,8 @@ function render(){
     const rank = idx + 1;
     const href = it.url || (it.video_id ? `https://www.youtube.com/shorts/${it.video_id}` : "#");
 
-    const thumb = it.thumbnail_url || ""; // null/undefined対策
+    const thumb = it.thumbnail_url || "";
+    const thumb2 = thumbFallback(thumb);
 
     const el = document.createElement("div");
     el.className = "item";
@@ -86,7 +101,11 @@ function render(){
       <div class="rank">${rank}</div>
 
       <div class="thumbWrap">
-        ${thumb ? `<img class="thumb" src="${escapeHtml(thumb)}" alt="" loading="lazy" />` : `<div class="thumb thumbPh"></div>`}
+        ${
+          thumb
+            ? `<img class="thumb" src="${escapeHtml(thumb)}" alt="" loading="lazy" referrerpolicy="no-referrer" />`
+            : `<div class="thumbPh"></div>`
+        }
       </div>
 
       <div class="main">
@@ -103,24 +122,24 @@ function render(){
         <a href="${href}" target="_blank" rel="noopener">YouTubeで見る →</a>
       </div>
     `;
+
+    // 画像が 404 / 403 で落ちるケースに備えてフォールバック
+    const img = el.querySelector("img.thumb");
+    if (img && thumb2 && thumb2 !== thumb) {
+      img.addEventListener("error", () => {
+        // 2段階：maxres -> mqdefault
+        img.src = thumb2;
+      }, { once: true });
+    }
+
     root.appendChild(el);
   });
-}
-
-function escapeHtml(str){
-  return String(str)
-    .replaceAll("&", "&amp;")
-    .replaceAll("<", "&lt;")
-    .replaceAll(">", "&gt;")
-    .replaceAll('"', "&quot;")
-    .replaceAll("'", "&#39;");
 }
 
 $("#btnReload").addEventListener("click", () => loadLatest().catch(err => alert(err.message)));
 $("#limitSelect").addEventListener("change", render);
 $("#sortSelect").addEventListener("change", render);
 $("#qInput").addEventListener("input", () => {
-  // 軽いデバウンス
   clearTimeout(window.__t);
   window.__t = setTimeout(render, 120);
 });
