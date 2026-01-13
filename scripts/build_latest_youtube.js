@@ -30,6 +30,7 @@ function parseArgs() {
     delayMs: 150,
     selftest: false,
     debug: false,
+    jpPriority: true, // ★デフォルトON（JP優先）
   };
   for (let i = 0; i < args.length; i++) {
     const a = args[i];
@@ -39,6 +40,8 @@ function parseArgs() {
     else if (a === "--delayMs") out.delayMs = Number(args[++i]);
     else if (a === "--selftest") out.selftest = true;
     else if (a === "--debug") out.debug = true;
+    else if (a === "--jpPriority") out.jpPriority = true;
+    else if (a === "--noJpPriority") out.jpPriority = false;
   }
   if (!Number.isFinite(out.maxItems) || out.maxItems <= 0) out.maxItems = 50;
   if (!Number.isFinite(out.lookbackHours) || out.lookbackHours <= 0) out.lookbackHours = 36;
@@ -62,7 +65,6 @@ function parseISODurationToSec(iso) {
 function topicFromTitle(title) {
   const t = (title || "").toLowerCase();
 
-  // 雑なルールで十分（あとで改善）
   const rules = [
     { topic: "雑学", keys: ["雑学", "豆知識", "知らない", "知ってた", "意外", "保存"] },
     { topic: "筋トレ", keys: ["筋トレ", "腹筋", "腕立て", "スクワット", "ダイエット", "脂肪", "ストレッチ"] },
@@ -80,6 +82,40 @@ function topicFromTitle(title) {
     }
   }
   return "未分類";
+}
+
+// ★ 日本語っぽさ（JP優先用）
+const JP_CHAR_RE = /[ぁ-んァ-ン一-龯]/;
+function isJapaneseLike(s) {
+  return JP_CHAR_RE.test(String(s || ""));
+}
+function calcJpScore(sn) {
+  // ざっくりでOK（重いAPI追加を避ける）
+  const title = sn?.title || "";
+  const ch = sn?.channelTitle || "";
+  const dal = String(sn?.defaultAudioLanguage || "").toLowerCase(); // e.g. "ja"
+  const dl = String(sn?.defaultLanguage || "").toLowerCase();
+
+  let score = 0;
+  if (isJapaneseLike(title)) score += 3;
+  if (isJapaneseLike(ch)) score += 2;
+  if (dal.startsWith("ja")) score += 3;
+  if (dl.startsWith("ja")) score += 1;
+
+  return score;
+}
+
+function pickThumbUrl(thumbnails) {
+  // 取れるものを優先順で
+  const t = thumbnails || {};
+  return (
+    t.maxres?.url ||
+    t.standard?.url ||
+    t.high?.url ||
+    t.medium?.url ||
+    t.default?.url ||
+    null
+  );
 }
 
 async function fetchJson(url, { retries = 3, delayMs = 400, debug = false } = {}) {
@@ -103,7 +139,6 @@ async function fetchJson(url, { retries = 3, delayMs = 400, debug = false } = {}
       continue;
     }
 
-    // それ以外はエラー終了
     throw new Error(`HTTP ${res.status}: ${text.slice(0, 300)}`);
   }
   throw new Error("fetchJson failed after retries");
@@ -172,6 +207,7 @@ function buildLatestJson(items) {
     updated_at: jstNowString(),
     source: "youtube-data-api",
     region: "JP",
+    strategy: "jp-priority",
     items,
   };
 }
@@ -183,7 +219,7 @@ function validateLatestJson(obj) {
   for (const it of obj.items) {
     if (!it.video_id || !it.url || !it.title) return "item missing required fields";
     if (typeof it.views !== "number") return "views must be number";
-    // thumbnail_url は任意（nullあり）
+    // thumbnail_url は任意（無くてもOK）
   }
   return null;
 }
@@ -197,7 +233,6 @@ async function main() {
   const publishedAfterISO = toIso(publishedAfter);
 
   // 収集クエリ（“広く薄く”でOK）
-  // Shorts専用APIは無いので、ここは割り切り。後で改善可能。
   const queries = [
     "shorts",
     "切り抜き",
@@ -258,15 +293,8 @@ async function main() {
 
     const agoSec = publishedAt ? Math.max(0, Math.floor((nowMs - publishedAt) / 1000)) : null;
 
-    // サムネURL（最大→小）
-    const thumbs = sn.thumbnails || {};
-    const thumb =
-      (thumbs.maxres && thumbs.maxres.url) ||
-      (thumbs.standard && thumbs.standard.url) ||
-      (thumbs.high && thumbs.high.url) ||
-      (thumbs.medium && thumbs.medium.url) ||
-      (thumbs.default && thumbs.default.url) ||
-      null;
+    const thumbnailUrl = pickThumbUrl(sn.thumbnails);
+    const jpScore = opt.jpPriority ? calcJpScore(sn) : 0;
 
     candidates.push({
       video_id: id,
@@ -276,13 +304,25 @@ async function main() {
       views,
       published_ago_sec: agoSec,
       topic: topicFromTitle(title),
-      thumbnail_url: thumb,
+      thumbnail_url: thumbnailUrl || undefined,
+      _jp_score: jpScore, // デバッグ用（気になるなら後で消してOK）
     });
   }
 
-  candidates.sort((a, b) => (b.views ?? 0) - (a.views ?? 0));
+  // JP優先：まずJPスコア → 次に再生数
+  candidates.sort((a, b) => {
+    if (opt.jpPriority) {
+      const d = (b._jp_score ?? 0) - (a._jp_score ?? 0);
+      if (d !== 0) return d;
+    }
+    return (b.views ?? 0) - (a.views ?? 0);
+  });
 
-  const top = candidates.slice(0, opt.maxItems);
+  const top = candidates.slice(0, opt.maxItems).map(it => {
+    // _jp_score は出力から消す（必要なら残してもOK）
+    const { _jp_score, ...rest } = it;
+    return rest;
+  });
 
   const payload = buildLatestJson(top);
   const err = validateLatestJson(payload);
