@@ -78,11 +78,18 @@ function render(){
     const rank = idx + 1;
     const href = it.url || (it.video_id ? `https://www.youtube.com/shorts/${it.video_id}` : "#");
 
+    const thumb = it.thumbnail_url || ""; // null/undefined対策
+
     const el = document.createElement("div");
     el.className = "item";
     el.innerHTML = `
       <div class="rank">${rank}</div>
-      <div>
+
+      <div class="thumbWrap">
+        ${thumb ? `<img class="thumb" src="${escapeHtml(thumb)}" alt="" loading="lazy" />` : `<div class="thumb thumbPh"></div>`}
+      </div>
+
+      <div class="main">
         <div class="title">${escapeHtml(it.title || "(no title)")}</div>
         <div class="meta2">
           <span class="badge">${escapeHtml(it.topic || "未分類")}</span>
@@ -91,6 +98,7 @@ function render(){
           <span class="badge"><span class="views">${fmtNum(it.views)}</span> 再生</span>
         </div>
       </div>
+
       <div class="go">
         <a href="${href}" target="_blank" rel="noopener">YouTubeで見る →</a>
       </div>

@@ -110,10 +110,24 @@ input{width:100%}
   background: rgba(17,24,35,.75);
   padding:12px;
   display:grid;
-  grid-template-columns: 56px 1fr auto;
+  grid-template-columns: 56px 120px 1fr auto; /* ★サムネ列追加 */
   gap:12px;
   align-items:center;
 }
+@media (max-width: 860px){
+  .item{
+    grid-template-columns: 56px 96px 1fr;
+    grid-template-areas:
+      "rank thumb main"
+      "rank thumb go";
+    align-items:start;
+  }
+  .rank{grid-area:rank}
+  .thumbWrap{grid-area:thumb}
+  .main{grid-area:main}
+  .go{grid-area:go; justify-content:flex-start; margin-top:8px}
+}
+
 .rank{
   width:56px; height:56px;
   border-radius:14px;
@@ -122,6 +136,27 @@ input{width:100%}
   border:1px solid #24354f;
   font-size:18px; font-weight:800;
 }
+
+.thumbWrap{display:flex; align-items:center; justify-content:center}
+.thumb{
+  width:120px;
+  height:68px;
+  object-fit:cover;
+  border-radius:12px;
+  border:1px solid #2b3b55;
+  background: rgba(255,255,255,0.06);
+}
+.thumbPh{
+  display:block;
+  width:120px;
+  height:68px;
+  border-radius:12px;
+  border:1px solid #2b3b55;
+  background: linear-gradient(135deg, rgba(255,255,255,0.06), rgba(255,255,255,0.02));
+}
+
+.main{min-width:0}
+
 .title{font-size:14px; font-weight:700; margin-bottom:6px}
 .meta2{font-size:12px; color:var(--muted); display:flex; gap:10px; flex-wrap:wrap}
 .badge{

@@ -183,6 +183,7 @@ function validateLatestJson(obj) {
   for (const it of obj.items) {
     if (!it.video_id || !it.url || !it.title) return "item missing required fields";
     if (typeof it.views !== "number") return "views must be number";
+    // thumbnail_url は任意（nullあり）
   }
   return null;
 }
@@ -257,6 +258,16 @@ async function main() {
 
     const agoSec = publishedAt ? Math.max(0, Math.floor((nowMs - publishedAt) / 1000)) : null;
 
+    // サムネURL（最大→小）
+    const thumbs = sn.thumbnails || {};
+    const thumb =
+      (thumbs.maxres && thumbs.maxres.url) ||
+      (thumbs.standard && thumbs.standard.url) ||
+      (thumbs.high && thumbs.high.url) ||
+      (thumbs.medium && thumbs.medium.url) ||
+      (thumbs.default && thumbs.default.url) ||
+      null;
+
     candidates.push({
       video_id: id,
       url: `https://www.youtube.com/shorts/${id}`,
@@ -265,6 +276,7 @@ async function main() {
       views,
       published_ago_sec: agoSec,
       topic: topicFromTitle(title),
+      thumbnail_url: thumb,
     });
   }
 
@@ -287,6 +299,7 @@ async function main() {
       video_id: sample.video_id,
       views: sample.views,
       topic: sample.topic,
+      thumbnail_url: sample.thumbnail_url,
     });
   }
 }
