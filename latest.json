@@ -1,52 +1,457 @@
 {
-  "updated_at": "2026-01-13 21:34 JST",
-  "source": "dummy",
+  "updated_at": "2026-01-13 21:39 JST",
+  "source": "youtube-data-api",
   "region": "JP",
   "items": [
     {
-      "video_id": "dummy003",
-      "url": "https://www.youtube.com/shorts/dummy003",
-      "title": "3日で変わる！○○トレ（初心者向け）",
-      "channel_title": "筋トレショーツ",
-      "views": 1193452,
-      "published_ago_sec": 72028,
+      "video_id": "3IzoHWMxU9E",
+      "url": "https://www.youtube.com/shorts/3IzoHWMxU9E",
+      "title": "Cat This Gril 😻 #shorts #tiktokvideo #funnyshorts #ytshaorts",
+      "channel_title": "Sukhasan Ka Star",
+      "views": 9951590,
+      "published_ago_sec": 88853,
+      "topic": "エンタメ"
+    },
+    {
+      "video_id": "2ejTwHIzuKc",
+      "url": "https://www.youtube.com/shorts/2ejTwHIzuKc",
+      "title": "Mamma megi khane do 🤣 #shorts #comedy #funny #trending",
+      "channel_title": "Mazhar Shorts12",
+      "views": 7814209,
+      "published_ago_sec": 121294,
+      "topic": "エンタメ"
+    },
+    {
+      "video_id": "xFxkrvh9QPg",
+      "url": "https://www.youtube.com/shorts/xFxkrvh9QPg",
+      "title": "Hamne papa mummy ke liye aaj kya laya #shorts #shortvideo #youtubeshorts",
+      "channel_title": "Mindset Sutra",
+      "views": 5361814,
+      "published_ago_sec": 113179,
+      "topic": "エンタメ"
+    },
+    {
+      "video_id": "bUtN8phfdFM",
+      "url": "https://www.youtube.com/shorts/bUtN8phfdFM",
+      "title": "I Tried An Apple PEELER.. 🍎😭 #relatablestories #comedy #funnymemes",
+      "channel_title": "Tyler Vitelli",
+      "views": 3733110,
+      "published_ago_sec": 93029,
+      "topic": "未分類"
+    },
+    {
+      "video_id": "EdSlf0VeuQ8",
+      "url": "https://www.youtube.com/shorts/EdSlf0VeuQ8",
+      "title": "Home ❌ Haweli ✅😱@triggeredinsaan #fukrainsaan #shorts #trending #fyp",
+      "channel_title": "Triggered Ahaana ",
+      "views": 3689562,
+      "published_ago_sec": 110910,
+      "topic": "エンタメ"
+    },
+    {
+      "video_id": "Dr3thDVkiGk",
+      "url": "https://www.youtube.com/shorts/Dr3thDVkiGk",
+      "title": "失敗した料理をたった３分で変えた方法",
+      "channel_title": "1分動画",
+      "views": 2773631,
+      "published_ago_sec": 103161,
       "topic": "料理"
     },
     {
-      "video_id": "dummy004",
-      "url": "https://www.youtube.com/shorts/dummy004",
-      "title": "英語が一瞬で出る○○フレーズ",
-      "channel_title": "英語ショート部",
-      "views": 667221,
-      "published_ago_sec": 30157,
+      "video_id": "tqhu1c9hPII",
+      "url": "https://www.youtube.com/shorts/tqhu1c9hPII",
+      "title": "Hesitation Left When Kapil Speaks 💀📈🔥 Ft. @NetflixIndiaOfficial #shorts #kapilsharma #pawansingh",
+      "channel_title": "SHIBO EDIT",
+      "views": 2615264,
+      "published_ago_sec": 117525,
+      "topic": "エンタメ"
+    },
+    {
+      "video_id": "lbHRDfsD3ng",
+      "url": "https://www.youtube.com/shorts/lbHRDfsD3ng",
+      "title": "Bro Replace The Real One 💀📈🔥 Ft. @AamirKhanTalkies @virdas #shorts #sunilgrover #aamirkhan",
+      "channel_title": "SHIBO EDIT",
+      "views": 2545427,
+      "published_ago_sec": 91775,
+      "topic": "エンタメ"
+    },
+    {
+      "video_id": "1oVXbG8iyA0",
+      "url": "https://www.youtube.com/shorts/1oVXbG8iyA0",
+      "title": "【前編】犯人は誰なの😨 #コント #友達あるある #あるある #学校行事 #ドラマ #コントチャンネル #元教師 #お笑い #高校生",
+      "channel_title": "テセサクch",
+      "views": 2529705,
+      "published_ago_sec": 103558,
+      "topic": "エンタメ"
+    },
+    {
+      "video_id": "7E8Z6Ndl8uY",
+      "url": "https://www.youtube.com/shorts/7E8Z6Ndl8uY",
+      "title": "O QUE O GARFIELD ESCOLHER, EU VOU GANHAR !! 🐱😱 #shorts",
+      "channel_title": "Anninha",
+      "views": 2497859,
+      "published_ago_sec": 77956,
+      "topic": "エンタメ"
+    },
+    {
+      "video_id": "ELaoyAExupo",
+      "url": "https://www.youtube.com/shorts/ELaoyAExupo",
+      "title": "Palak ka coconut water kon pi Gya 😱😇 #shorts #coconut #funnyvideo #viralshort",
+      "channel_title": "Ranwa Family",
+      "views": 2226185,
+      "published_ago_sec": 122268,
+      "topic": "エンタメ"
+    },
+    {
+      "video_id": "dEf9rpK3JVg",
+      "url": "https://www.youtube.com/shorts/dEf9rpK3JVg",
+      "title": "Reo ro gaya😂 #shorts | Anant Rastogi",
+      "channel_title": "Anant Rastogi",
+      "views": 2223257,
+      "published_ago_sec": 94026,
+      "topic": "エンタメ"
+    },
+    {
+      "video_id": "mnfvApF3iCQ",
+      "url": "https://www.youtube.com/shorts/mnfvApF3iCQ",
+      "title": "Girls vs Boys on Beach 🏖️🤣 #priyalkukreja #shorts #ytshorts",
+      "channel_title": "Priyal Kukreja",
+      "views": 2095484,
+      "published_ago_sec": 90528,
+      "topic": "エンタメ"
+    },
+    {
+      "video_id": "NKD5j_twBOs",
+      "url": "https://www.youtube.com/shorts/NKD5j_twBOs",
+      "title": "Beti ne dadi ko sula diya😴😂❤️ #unknownboyvarun #shorts",
+      "channel_title": "unknown boy varun",
+      "views": 1948812,
+      "published_ago_sec": 97723,
+      "topic": "エンタメ"
+    },
+    {
+      "video_id": "g2LsM2WZPxY",
+      "url": "https://www.youtube.com/shorts/g2LsM2WZPxY",
+      "title": "【ショートコント】食べる派#あるある #コント #お笑い #shorts",
+      "channel_title": "ミラクルST計画",
+      "views": 1862578,
+      "published_ago_sec": 103129,
+      "topic": "エンタメ"
+    },
+    {
+      "video_id": "WxmKk2YM_sA",
+      "url": "https://www.youtube.com/shorts/WxmKk2YM_sA",
+      "title": "You can even make breakfast while riding this Bicycle | #shorts",
+      "channel_title": "Factz AQ Official",
+      "views": 1852130,
+      "published_ago_sec": 122935,
+      "topic": "エンタメ"
+    },
+    {
+      "video_id": "8LjrFMkoXF4",
+      "url": "https://www.youtube.com/shorts/8LjrFMkoXF4",
+      "title": "✅ bushcraft survival skills Jungle Ghost 🧼 #camping #survival #OKAFacts #outdoors #lifehack",
+      "channel_title": "Oka Adventures ",
+      "views": 1758610,
+      "published_ago_sec": 117568,
+      "topic": "未分類"
+    },
+    {
+      "video_id": "e2dU6VnGfHc",
+      "url": "https://www.youtube.com/shorts/e2dU6VnGfHc",
+      "title": "【JKあるある】あなたはどれ派？先生(本家@hanmariku_kintore )",
+      "channel_title": "古森もぐ",
+      "views": 1218485,
+      "published_ago_sec": 96036,
+      "topic": "エンタメ"
+    },
+    {
+      "video_id": "tci4miQmNDw",
+      "url": "https://www.youtube.com/shorts/tci4miQmNDw",
+      "title": "成人式あるある #shorts",
+      "channel_title": "たのシーサー",
+      "views": 1187818,
+      "published_ago_sec": 114474,
+      "topic": "エンタメ"
+    },
+    {
+      "video_id": "Bsg-oRJHlPE",
+      "url": "https://www.youtube.com/shorts/Bsg-oRJHlPE",
+      "title": "最幸な日のはずが...😭 #恋愛 #両思い #片思い #片思いあるある #恋愛あるある  #恋愛相談  #恋愛アドバイス  #恋愛心理 #恋愛占い #浮気 #相性占い",
+      "channel_title": "あかり💖",
+      "views": 1045613,
+      "published_ago_sec": 89623,
+      "topic": "恋愛"
+    },
+    {
+      "video_id": "zMKi3sC-f2w",
+      "url": "https://www.youtube.com/shorts/zMKi3sC-f2w",
+      "title": "バイト終わりの最強救世主ｗｗ #恋愛 #カップル #line",
+      "channel_title": "にゃん太郎LINE",
+      "views": 968770,
+      "published_ago_sec": 106720,
+      "topic": "恋愛"
+    },
+    {
+      "video_id": "x-LkwlDynI0",
+      "url": "https://www.youtube.com/shorts/x-LkwlDynI0",
+      "title": "アパレル店員にキレてる奴　#アパレル #買い物 #あるある",
+      "channel_title": "諦めないアキラ",
+      "views": 807703,
+      "published_ago_sec": 97736,
+      "topic": "エンタメ"
+    },
+    {
+      "video_id": "H6UFTM_pPis",
+      "url": "https://www.youtube.com/shorts/H6UFTM_pPis",
+      "title": "餃子の皮アレンジレシピ#ライフハック #ずんだもん #shorts",
+      "channel_title": "ねこの手かりたい",
+      "views": 727522,
+      "published_ago_sec": 103145,
+      "topic": "料理"
+    },
+    {
+      "video_id": "hl4WJVWXT38",
+      "url": "https://www.youtube.com/shorts/hl4WJVWXT38",
+      "title": "受験生が知らない雑学で偏差値10上げた生徒 #shorts #キミノスクール",
+      "channel_title": "キミノスクール / キミノ高等学院",
+      "views": 721426,
+      "published_ago_sec": 99509,
       "topic": "雑学"
     },
     {
-      "video_id": "dummy005",
-      "url": "https://www.youtube.com/shorts/dummy005",
-      "title": "料理が爆速になる○○だけ",
-      "channel_title": "ズボラ飯Shorts",
-      "views": 523214,
-      "published_ago_sec": 25807,
-      "topic": "雑学"
+      "video_id": "8xFy4flC58M",
+      "url": "https://www.youtube.com/shorts/8xFy4flC58M",
+      "title": "JYPから間違った疑似恋愛を覚えたアイドル",
+      "channel_title": "日本ジヌ【니혼지누】ーK-POPに関する全て",
+      "views": 710870,
+      "published_ago_sec": 91285,
+      "topic": "恋愛"
     },
     {
-      "video_id": "dummy002",
-      "url": "https://www.youtube.com/shorts/dummy002",
-      "title": "これ知らないと損する…○○の裏技",
-      "channel_title": "ライフハック短編集",
-      "views": 356940,
-      "published_ago_sec": 66706,
+      "video_id": "c9tSobK8ssg",
+      "url": "https://www.youtube.com/shorts/c9tSobK8ssg",
+      "title": "筋トレ中に発生したお互いの主張",
+      "channel_title": "1分ください",
+      "views": 672631,
+      "published_ago_sec": 120300,
       "topic": "筋トレ"
     },
     {
-      "video_id": "dummy001",
-      "url": "https://www.youtube.com/shorts/dummy001",
-      "title": "【保存推奨】1分で分かる○○（テンポ命）",
-      "channel_title": "毎日ショート研究所",
-      "views": 312486,
-      "published_ago_sec": 77007,
+      "video_id": "CoxRL2MvHsQ",
+      "url": "https://www.youtube.com/shorts/CoxRL2MvHsQ",
+      "title": "🌙 知らないと命に関わるかもしれない生存雑学10選",
+      "channel_title": "言ノート",
+      "views": 631834,
+      "published_ago_sec": 122964,
+      "topic": "雑学"
+    },
+    {
+      "video_id": "AkOyR_Pz_qg",
+      "url": "https://www.youtube.com/shorts/AkOyR_Pz_qg",
+      "title": "アメリカ人が聞くと絶対ビビる英語「黒目」",
+      "channel_title": "StudyInネイティブ英会話",
+      "views": 589065,
+      "published_ago_sec": 88788,
+      "topic": "英語"
+    },
+    {
+      "video_id": "UoAFMqHWzc4",
+      "url": "https://www.youtube.com/shorts/UoAFMqHWzc4",
+      "title": "様子のおかしい切り抜きを見つけてしまった夜乃くろむwww【ぶいすぽっ！/切り抜き/夜乃くろむ】 #shorts",
+      "channel_title": "V好きの一般人",
+      "views": 516272,
+      "published_ago_sec": 121135,
+      "topic": "エンタメ"
+    },
+    {
+      "video_id": "9teizhQJwQY",
+      "url": "https://www.youtube.com/shorts/9teizhQJwQY",
+      "title": "バレバレ界隈の切り抜きを見た話をする花芽すみれと橘ひなのwww【ぶいすぽ/切り抜き/胡桃のあ】",
+      "channel_title": "ぶいぬきっ!【切り抜き】",
+      "views": 505902,
+      "published_ago_sec": 56367,
+      "topic": "エンタメ"
+    },
+    {
+      "video_id": "Sg1LlShVCog",
+      "url": "https://www.youtube.com/shorts/Sg1LlShVCog",
+      "title": "「トランプにフル無視されるwww」グレタについての雑学",
+      "channel_title": "雑学探偵ホームズ",
+      "views": 464954,
+      "published_ago_sec": 103136,
+      "topic": "雑学"
+    },
+    {
+      "video_id": "X2XnYpNmEmI",
+      "url": "https://www.youtube.com/shorts/X2XnYpNmEmI",
+      "title": "10秒で完結！たたみ方まとめ#ライフハック",
+      "channel_title": "カントマ",
+      "views": 455443,
+      "published_ago_sec": 91836,
+      "topic": "ライフハック"
+    },
+    {
+      "video_id": "hAgF3FGFbm8",
+      "url": "https://www.youtube.com/shorts/hAgF3FGFbm8",
+      "title": "カメラトラブルがウザい時…#あるある #カップル #shorts",
+      "channel_title": "サンキューどっこいしょ",
+      "views": 438176,
+      "published_ago_sec": 99509,
+      "topic": "エンタメ"
+    },
+    {
+      "video_id": "kKmHgnyK5WE",
+      "url": "https://www.youtube.com/shorts/kKmHgnyK5WE",
+      "title": "Say It In English? Ft. Sara Khan🤪 Go and Watch the full video on our channel 👀",
+      "channel_title": "EAT TRAVEL REPEAT",
+      "views": 428828,
+      "published_ago_sec": 104566,
+      "topic": "英語"
+    },
+    {
+      "video_id": "nniN9q6r2Xs",
+      "url": "https://www.youtube.com/shorts/nniN9q6r2Xs",
+      "title": "まぁ見た目も大事なんだけどねええ#JK #あるある #お笑い #fyp #ナたんとウたん #おすすめにのりたい",
+      "channel_title": "Brudnicki Kintop",
+      "views": 405752,
+      "published_ago_sec": 91669,
+      "topic": "エンタメ"
+    },
+    {
+      "video_id": "H-jEQ-Lob0A",
+      "url": "https://www.youtube.com/shorts/H-jEQ-Lob0A",
+      "title": "幾田りら YOASOBI脱退説が実現間近な理由がヤバ過ぎた　#アーティスト #ボカロ #雑学 #yoasobi #ヨアソビ #よあそび #ikura #幾田りら",
+      "channel_title": "Mザツ! [1分でわかる音楽アーティスト雑学]",
+      "views": 401909,
+      "published_ago_sec": 99554,
+      "topic": "雑学"
+    },
+    {
+      "video_id": "GMevq6jnYxI",
+      "url": "https://www.youtube.com/shorts/GMevq6jnYxI",
+      "title": "実は全部知ってた俺ｗｗ #恋愛 #カップル #line",
+      "channel_title": "にゃん太郎LINE",
+      "views": 383951,
+      "published_ago_sec": 110363,
+      "topic": "雑学"
+    },
+    {
+      "video_id": "eGuQ83gZvIs",
+      "url": "https://www.youtube.com/shorts/eGuQ83gZvIs",
+      "title": "🔥40万再生っ‼︎NHK新会長がヤバすぎるライフハック#雑学 #ライフハック",
+      "channel_title": "雑学をハックした猫",
+      "views": 372291,
+      "published_ago_sec": 101344,
+      "topic": "雑学"
+    },
+    {
+      "video_id": "V13aNbWoZFw",
+      "url": "https://www.youtube.com/shorts/V13aNbWoZFw",
+      "title": "〇〇と同棲をした結果、、#恋愛 #彼氏 #ライン",
+      "channel_title": "バナナLINE",
+      "views": 348817,
+      "published_ago_sec": 92081,
       "topic": "恋愛"
+    },
+    {
+      "video_id": "NvuYDzLl1FE",
+      "url": "https://www.youtube.com/shorts/NvuYDzLl1FE",
+      "title": "初カップラーメン #クレしん #アニメ #漫画 #グルメ #料理 #anime #shorts",
+      "channel_title": "腹ペコアニメ",
+      "views": 338987,
+      "published_ago_sec": 98020,
+      "topic": "料理"
+    },
+    {
+      "video_id": "mJSfCKOpGzI",
+      "url": "https://www.youtube.com/shorts/mJSfCKOpGzI",
+      "title": "テレビに洗脳されとる#テレビっ子#子供#子供あるある#あるある#ないない#どっち#幼稚園#保育園#お笑い",
+      "channel_title": "Frederique Teston",
+      "views": 315360,
+      "published_ago_sec": 94489,
+      "topic": "エンタメ"
+    },
+    {
+      "video_id": "R__4ZzFrR6s",
+      "url": "https://www.youtube.com/shorts/R__4ZzFrR6s",
+      "title": "㊗️20万再生！信じられない理由で離婚した女性芸能人TOP3 #芸能人 #雑学 #離婚",
+      "channel_title": "芸能裏レポ",
+      "views": 296129,
+      "published_ago_sec": 124750,
+      "topic": "雑学"
+    },
+    {
+      "video_id": "-bwaH5-gydo",
+      "url": "https://www.youtube.com/shorts/-bwaH5-gydo",
+      "title": "Bathing in the midst of nature creates ideas #camping #bushcraft #survival #facts #lifehacks#shorts",
+      "channel_title": "Bangla Sarvival",
+      "views": 287963,
+      "published_ago_sec": 113294,
+      "topic": "エンタメ"
+    },
+    {
+      "video_id": "zLuGzEQpZOc",
+      "url": "https://www.youtube.com/shorts/zLuGzEQpZOc",
+      "title": "中学生の恋愛ってこんな雰囲気？！",
+      "channel_title": "メカニックうさぎ",
+      "views": 280947,
+      "published_ago_sec": 92256,
+      "topic": "恋愛"
+    },
+    {
+      "video_id": "ka6_Z62d0Q8",
+      "url": "https://www.youtube.com/shorts/ka6_Z62d0Q8",
+      "title": "料理研究家が本気で吉野家を再現したらどれくらい美味しくなるのかお見せします #shorts #リュウジ #吉野家 #牛丼 #レシピ #再現レシピ #料理 #バズレシピ",
+      "channel_title": "料理研究家リュウジのバズレシピ",
+      "views": 269258,
+      "published_ago_sec": 102137,
+      "topic": "料理"
+    },
+    {
+      "video_id": "vlO8yL7fEnU",
+      "url": "https://www.youtube.com/shorts/vlO8yL7fEnU",
+      "title": "金ないのバレて嫌われた時…#カップル #あるある #shorts",
+      "channel_title": "Quanxian",
+      "views": 267167,
+      "published_ago_sec": 120459,
+      "topic": "エンタメ"
+    },
+    {
+      "video_id": "sJF-tAiODT4",
+      "url": "https://www.youtube.com/shorts/sJF-tAiODT4",
+      "title": "【風吹ケイ】逆プロポーズをしてしまう #shorts #couple #恋愛",
+      "channel_title": "佐久間宣行お笑いチャンネル【#NOBROCK #佐久間】《切り抜き》",
+      "views": 259474,
+      "published_ago_sec": 121107,
+      "topic": "恋愛"
+    },
+    {
+      "video_id": "LGNrIHqN6io",
+      "url": "https://www.youtube.com/shorts/LGNrIHqN6io",
+      "title": "㊗️25万再生🎉脇役からブレイクした女性芸能人3人 #雑学 #shorts #shortvideo #芸能人 #松本若菜 #上野樹里 #河合優実 #ランキング",
+      "channel_title": "女性芸能人の秘密部屋",
+      "views": 255024,
+      "published_ago_sec": 95941,
+      "topic": "雑学"
+    },
+    {
+      "video_id": "o2Jp2ec3Vfo",
+      "url": "https://www.youtube.com/shorts/o2Jp2ec3Vfo",
+      "title": "息子が彼女連れてきたからはりきって料理作ったら一口食べるなり…【笑える】",
+      "channel_title": "ショートストーリー【泣き笑い話】",
+      "views": 223314,
+      "published_ago_sec": 99496,
+      "topic": "料理"
+    },
+    {
+      "video_id": "FheFOknGnnE",
+      "url": "https://www.youtube.com/shorts/FheFOknGnnE",
+      "title": "Life hack 😂",
+      "channel_title": "Nadir Show",
+      "views": 211355,
+      "published_ago_sec": 77954,
+      "topic": "未分類"
     }
   ]
 }
