@@ -1,0 +1,91 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>今日、何を真似ればいいか</title>
+  <meta name="description" content="今日・今伸びているYouTube Shorts（JP）をランキング表示。市場調査をゼロに。" />
+  <link rel="stylesheet" href="./assets/style.css" />
+</head>
+<body>
+  <header class="wrap">
+    <div class="top">
+      <h1>今日、何を真似ればいいか</h1>
+      <p class="sub">YouTube Shorts（JP）・再生数ランキング / 1日2回更新</p>
+    </div>
+
+    <div class="bar">
+      <div class="meta">
+        <span id="updatedAt">更新: -</span>
+        <span class="dot">•</span>
+        <span id="sourceNote">ソース: -</span>
+      </div>
+      <div class="actions">
+        <button id="btnReload" type="button">再読み込み</button>
+        <a class="ghost" href="./latest.json" target="_blank" rel="noopener">latest.jsonを見る</a>
+      </div>
+    </div>
+
+    <div class="notice">
+      <strong>注意:</strong> これは分析ツールではなく「真似先を即決する」ためのスコップです。細かい精度は追いません。
+    </div>
+  </header>
+
+  <main class="wrap">
+    <section class="cards">
+      <div class="card">
+        <div class="cardTitle">フィルタ</div>
+        <div class="filterRow">
+          <label>
+            表示件数
+            <select id="limitSelect">
+              <option value="10">10</option>
+              <option value="20" selected>20</option>
+              <option value="30">30</option>
+              <option value="50">50</option>
+            </select>
+          </label>
+
+          <label>
+            並び
+            <select id="sortSelect">
+              <option value="views_desc" selected>再生数（多い順）</option>
+              <option value="age_asc">投稿が新しい順</option>
+            </select>
+          </label>
+
+          <label>
+            キーワード
+            <input id="qInput" type="search" placeholder="例: 雑学 / 筋トレ / 英語 / 料理" />
+          </label>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="cardTitle">今日の結論</div>
+        <div id="headline" class="headline">読み込み中...</div>
+        <div id="hint" class="hint">—</div>
+      </div>
+    </section>
+
+    <section class="list">
+      <div class="listHead">
+        <div class="listTitle">ランキング</div>
+        <div id="countInfo" class="countInfo">-</div>
+      </div>
+
+      <div id="items" class="items"></div>
+
+      <footer class="footer">
+        <p>
+          クリックでYouTubeへ遷移します。<br/>
+          <a href="./terms.html" class="muted" style="display:none;">利用規約</a>
+          <span class="muted">（MVP: まだ未実装でOK）</span>
+        </p>
+      </footer>
+    </section>
+  </main>
+
+  <script src="./assets/app.js"></script>
+</body>
+</html>
