@@ -1,34 +1,52 @@
 {
-  "updated_at": "2026-01-13 19:00 JST",
+  "updated_at": "2026-01-13 21:15 JST",
   "source": "dummy",
   "region": "JP",
   "items": [
-    {
-      "video_id": "dummy001",
-      "url": "https://www.youtube.com/shorts/dummy001",
-      "title": "【保存推奨】1分で分かる○○（テンポ命）",
-      "channel_title": "毎日ショート研究所",
-      "views": 1280000,
-      "published_ago_sec": 7200,
-      "topic": "雑学"
-    },
     {
       "video_id": "dummy002",
       "url": "https://www.youtube.com/shorts/dummy002",
       "title": "これ知らないと損する…○○の裏技",
       "channel_title": "ライフハック短編集",
-      "views": 980000,
-      "published_ago_sec": 14400,
-      "topic": "ライフハック"
+      "views": 1610158,
+      "published_ago_sec": 18111,
+      "topic": "筋トレ"
+    },
+    {
+      "video_id": "dummy001",
+      "url": "https://www.youtube.com/shorts/dummy001",
+      "title": "【保存推奨】1分で分かる○○（テンポ命）",
+      "channel_title": "毎日ショート研究所",
+      "views": 1479632,
+      "published_ago_sec": 63401,
+      "topic": "英語"
     },
     {
       "video_id": "dummy003",
       "url": "https://www.youtube.com/shorts/dummy003",
       "title": "3日で変わる！○○トレ（初心者向け）",
       "channel_title": "筋トレショーツ",
-      "views": 740000,
-      "published_ago_sec": 21600,
-      "topic": "筋トレ"
+      "views": 1292660,
+      "published_ago_sec": 66900,
+      "topic": "料理"
+    },
+    {
+      "video_id": "dummy005",
+      "url": "https://www.youtube.com/shorts/dummy005",
+      "title": "料理が爆速になる○○だけ",
+      "channel_title": "ズボラ飯Shorts",
+      "views": 325809,
+      "published_ago_sec": 48001,
+      "topic": "恋愛"
+    },
+    {
+      "video_id": "dummy004",
+      "url": "https://www.youtube.com/shorts/dummy004",
+      "title": "英語が一瞬で出る○○フレーズ",
+      "channel_title": "英語ショート部",
+      "views": 236461,
+      "published_ago_sec": 6081,
+      "topic": "ライフハック"
     }
   ]
 }
