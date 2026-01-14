@@ -2,6 +2,11 @@
 // YouTube Data API v3 から「今伸びてそうなJPのShorts候補」を集めて latest.json を生成する。
 // 方針: 厳密Shorts判定はしない。まずは「60秒以下」+ 簡易収集でOK。
 // Node 20 以上（GitHub Actions の node 20 は fetch が使える）
+//
+// 2026-01: JP寄せを強化（朝は海外に寄りやすい問題の対策）
+// - JPスコアで段階フィルタ（足りなければ閾値を下げて埋める）
+// - JST時刻で“強め度”を自動調整（朝は強め / 夜は少し緩め）
+// - --jpMin / --jpMode / --noAutoJp で制御可能
 
 const fs = require("fs");
 const path = require("path");
@@ -14,10 +19,17 @@ function die(msg) {
 }
 
 function pad(n) { return String(n).padStart(2, "0"); }
+
+function jstNow() {
+  // JST = UTC+9
+  return new Date(Date.now() + 9 * 60 * 60 * 1000);
+}
+
 function jstNowString() {
-  const d = new Date(Date.now() + 9 * 60 * 60 * 1000);
+  const d = jstNow();
   return `${d.getUTCFullYear()}-${pad(d.getUTCMonth() + 1)}-${pad(d.getUTCDate())} ${pad(d.getUTCHours())}:${pad(d.getUTCMinutes())} JST`;
 }
+
 function toIso(d) { return d.toISOString(); }
 function sleep(ms) { return new Promise(r => setTimeout(r, ms)); }
 
@@ -30,8 +42,13 @@ function parseArgs() {
     delayMs: 150,
     selftest: false,
     debug: false,
-    jpPriority: true, // ★デフォルトON（JP優先）
+
+    jpPriority: true,      // ★デフォルトON（JP優先）
+    jpMin: null,           // nullのときは自動（JST時刻ベース）
+    jpMode: "tiered",      // "tiered" | "sortOnly"
+    autoJp: true,          // true: JST時刻でjpMin自動
   };
+
   for (let i = 0; i < args.length; i++) {
     const a = args[i];
     if (a === "--max") out.maxItems = Number(args[++i]);
@@ -42,11 +59,19 @@ function parseArgs() {
     else if (a === "--debug") out.debug = true;
     else if (a === "--jpPriority") out.jpPriority = true;
     else if (a === "--noJpPriority") out.jpPriority = false;
+    else if (a === "--jpMin") out.jpMin = Number(args[++i]);
+    else if (a === "--jpMode") out.jpMode = String(args[++i] || "").trim();
+    else if (a === "--noAutoJp") out.autoJp = false;
   }
-  if (!Number.isFinite(out.maxItems) || out.maxItems <= 0) out.maxItems = 50;
+
+  if (!Number.isFinite(out.maxItems) || out.maxItems <= 0) out.maxItems = 200;
   if (!Number.isFinite(out.lookbackHours) || out.lookbackHours <= 0) out.lookbackHours = 36;
   if (!Number.isFinite(out.perQuery) || out.perQuery <= 0) out.perQuery = 25;
   if (!Number.isFinite(out.delayMs) || out.delayMs < 0) out.delayMs = 150;
+
+  if (!["tiered", "sortOnly"].includes(out.jpMode)) out.jpMode = "tiered";
+  if (out.jpMin != null && !Number.isFinite(out.jpMin)) out.jpMin = null;
+
   return out;
 }
 
@@ -89,18 +114,27 @@ const JP_CHAR_RE = /[ぁ-んァ-ン一-龯]/;
 function isJapaneseLike(s) {
   return JP_CHAR_RE.test(String(s || ""));
 }
+
+// JPスコア（強め）
+// - title日本語：強め
+// - channel日本語：中
+// - defaultAudioLanguage ja：強め
+// - defaultLanguage ja：弱
+// - titleに「#日本」「#japan」「日本語」など：微加点（誤爆してもOK）
 function calcJpScore(sn) {
-  // ざっくりでOK（重いAPI追加を避ける）
   const title = sn?.title || "";
   const ch = sn?.channelTitle || "";
   const dal = String(sn?.defaultAudioLanguage || "").toLowerCase(); // e.g. "ja"
   const dl = String(sn?.defaultLanguage || "").toLowerCase();
 
   let score = 0;
-  if (isJapaneseLike(title)) score += 3;
+  if (isJapaneseLike(title)) score += 4;
   if (isJapaneseLike(ch)) score += 2;
-  if (dal.startsWith("ja")) score += 3;
+  if (dal.startsWith("ja")) score += 4;
   if (dl.startsWith("ja")) score += 1;
+
+  const tl = title.toLowerCase();
+  if (tl.includes("日本") || tl.includes("#japan") || tl.includes("#日本") || tl.includes("日本語")) score += 1;
 
   return score;
 }
@@ -202,12 +236,20 @@ async function getVideoDetails(videoIds, { delayMs, debug }) {
   return out;
 }
 
-function buildLatestJson(items) {
+function buildLatestJson(items, meta = {}) {
   return {
     updated_at: jstNowString(),
     source: "youtube-data-api",
     region: "JP",
-    strategy: "jp-priority",
+    strategy: meta.strategy || "jp-priority",
+    jp: {
+      enabled: !!meta.jpEnabled,
+      mode: meta.jpMode || "tiered",
+      auto: !!meta.jpAuto,
+      jp_min: meta.jpMin ?? null,
+      tiers_used: meta.tiersUsed || [],
+      collected_candidates: meta.collectedCandidates ?? null,
+    },
     items,
   };
 }
@@ -222,6 +264,40 @@ function validateLatestJson(obj) {
     // thumbnail_url は任意（無くてもOK）
   }
   return null;
+}
+
+function autoJpMinByJstHour() {
+  // 朝は海外寄りになりやすいので強め、夜は少し緩め
+  // ※値は“雑に強め”でOK。必要なら運用で調整。
+  const h = jstNow().getUTCHours(); // JST hour
+  if (h >= 6 && h <= 12) return 3;   // 朝〜昼前：強め
+  if (h >= 13 && h <= 17) return 2;  // 午後：中
+  return 2;                          // 夜：中（極端に緩めない）
+}
+
+function pickWithTieredJpFilter(sortedCandidates, maxItems, jpMinBase) {
+  // 段階的にjpScore閾値を緩めながら maxItems を満たす
+  // 例: base=3 -> [3,2,1,0] の順で埋める
+  const tiers = [];
+  const base = Math.max(0, Math.min(10, jpMinBase ?? 2));
+  for (let t = base; t >= 0; t--) tiers.push(t);
+
+  const picked = [];
+  const usedIds = new Set();
+
+  for (const tier of tiers) {
+    for (const it of sortedCandidates) {
+      if (picked.length >= maxItems) break;
+      const jp = it._jp_score ?? 0;
+      if (jp < tier) continue;
+      if (usedIds.has(it.video_id)) continue;
+      usedIds.add(it.video_id);
+      picked.push(it);
+    }
+    if (picked.length >= maxItems) break;
+  }
+
+  return { picked, tiersUsed: tiers };
 }
 
 async function main() {
@@ -305,11 +381,11 @@ async function main() {
       published_ago_sec: agoSec,
       topic: topicFromTitle(title),
       thumbnail_url: thumbnailUrl || undefined,
-      _jp_score: jpScore, // デバッグ用（気になるなら後で消してOK）
+      _jp_score: jpScore, // 内部用
     });
   }
 
-  // JP優先：まずJPスコア → 次に再生数
+  // まずJP寄せ+再生数で“並び順”を作る（その上で tiered で切る）
   candidates.sort((a, b) => {
     if (opt.jpPriority) {
       const d = (b._jp_score ?? 0) - (a._jp_score ?? 0);
@@ -318,19 +394,50 @@ async function main() {
     return (b.views ?? 0) - (a.views ?? 0);
   });
 
-  const top = candidates.slice(0, opt.maxItems).map(it => {
-    // _jp_score は出力から消す（必要なら残してもOK）
+  // JPフィルタ（tiered） or 並びのみ（sortOnly）
+  let picked = [];
+  let tiersUsed = [];
+  let jpMinEffective = null;
+
+  if (opt.jpPriority && opt.jpMode === "tiered") {
+    const base = (opt.jpMin != null)
+      ? opt.jpMin
+      : (opt.autoJp ? autoJpMinByJstHour() : 0);
+
+    jpMinEffective = base;
+
+    const r = pickWithTieredJpFilter(candidates, opt.maxItems, base);
+    picked = r.picked;
+    tiersUsed = r.tiersUsed;
+  } else {
+    // sortOnly: JP優先ソートはするが、足切りはしない
+    picked = candidates.slice(0, opt.maxItems);
+    jpMinEffective = (opt.jpMin != null) ? opt.jpMin : null;
+    tiersUsed = [];
+  }
+
+  const top = picked.map(it => {
+    // _jp_score は出力から消す
     const { _jp_score, ...rest } = it;
     return rest;
   });
 
-  const payload = buildLatestJson(top);
+  const payload = buildLatestJson(top, {
+    strategy: opt.jpPriority ? `jp-${opt.jpMode}` : "views-only",
+    jpEnabled: opt.jpPriority,
+    jpMode: opt.jpMode,
+    jpAuto: opt.autoJp,
+    jpMin: jpMinEffective,
+    tiersUsed,
+    collectedCandidates: candidates.length,
+  });
+
   const err = validateLatestJson(payload);
   if (err) die("latest.json validation failed: " + err);
 
   const outPath = path.join(process.cwd(), "latest.json");
   fs.writeFileSync(outPath, JSON.stringify(payload, null, 2), "utf-8");
-  console.log("Wrote:", outPath, "items:", top.length);
+  console.log("Wrote:", outPath, "items:", top.length, "candidates:", candidates.length);
 
   if (opt.selftest) {
     if (top.length === 0) die("selftest failed: no items");
