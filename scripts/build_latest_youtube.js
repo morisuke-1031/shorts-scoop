@@ -1,340 +1,279 @@
-// scripts/build_latest_youtube.js
-// YouTube Data API v3 から「今伸びてそうなJPのShorts候補」を集めて latest.json を生成する。
-// 方針: 厳密Shorts判定はしない。まずは「60秒以下」+ 簡易収集でOK。
-// Node 20 以上（GitHub Actions の node 20 は fetch が使える）
+#!/usr/bin/env node
+/**
+ * Build latest.json from YouTube Data API v3
+ * - regionCode=JP を基本にしつつ、クエリで「日本っぽさ」を優先
+ * - search.list -> videos.list で詳細(views, thumbnails)を付与
+ *
+ * Usage:
+ *   node scripts/build_latest_youtube.js --max 200 --hours 36 --perQuery 25 --selftest
+ */
+"use strict";
 
 const fs = require("fs");
 const path = require("path");
 
-const API_KEY = process.env.YOUTUBE_API_KEY;
+const API_BASE = "https://www.googleapis.com/youtube/v3";
 
-function die(msg) {
+function die(msg){
   console.error(msg);
   process.exit(1);
 }
 
-function pad(n) { return String(n).padStart(2, "0"); }
-function jstNowString() {
-  const d = new Date(Date.now() + 9 * 60 * 60 * 1000);
-  return `${d.getUTCFullYear()}-${pad(d.getUTCMonth() + 1)}-${pad(d.getUTCDate())} ${pad(d.getUTCHours())}:${pad(d.getUTCMinutes())} JST`;
-}
-function toIso(d) { return d.toISOString(); }
-function sleep(ms) { return new Promise(r => setTimeout(r, ms)); }
-
-function parseArgs() {
-  const args = process.argv.slice(2);
-  const out = {
-    maxItems: 50,
-    lookbackHours: 36,
-    perQuery: 25,
-    delayMs: 150,
-    selftest: false,
-    debug: false,
-    jpPriority: true, // ★デフォルトON（JP優先）
-  };
-  for (let i = 0; i < args.length; i++) {
-    const a = args[i];
-    if (a === "--max") out.maxItems = Number(args[++i]);
-    else if (a === "--hours") out.lookbackHours = Number(args[++i]);
-    else if (a === "--perQuery") out.perQuery = Number(args[++i]);
-    else if (a === "--delayMs") out.delayMs = Number(args[++i]);
-    else if (a === "--selftest") out.selftest = true;
-    else if (a === "--debug") out.debug = true;
-    else if (a === "--jpPriority") out.jpPriority = true;
-    else if (a === "--noJpPriority") out.jpPriority = false;
+function parseArgs(argv){
+  const out = { max: 200, hours: 36, perQuery: 25, selftest: false };
+  for (let i=2; i<argv.length; i++){
+    const a = argv[i];
+    if (a === "--selftest") { out.selftest = true; continue; }
+    if (a.startsWith("--max")) out.max = Number(argv[++i]);
+    else if (a.startsWith("--hours")) out.hours = Number(argv[++i]);
+    else if (a.startsWith("--perQuery")) out.perQuery = Number(argv[++i]);
+    else die(`unknown arg: ${a}`);
   }
-  if (!Number.isFinite(out.maxItems) || out.maxItems <= 0) out.maxItems = 50;
-  if (!Number.isFinite(out.lookbackHours) || out.lookbackHours <= 0) out.lookbackHours = 36;
-  if (!Number.isFinite(out.perQuery) || out.perQuery <= 0) out.perQuery = 25;
-  if (!Number.isFinite(out.delayMs) || out.delayMs < 0) out.delayMs = 150;
+  if (!Number.isFinite(out.max) || out.max <= 0) die("--max must be positive number");
+  if (!Number.isFinite(out.hours) || out.hours <= 0) die("--hours must be positive number");
+  if (!Number.isFinite(out.perQuery) || out.perQuery <= 0) die("--perQuery must be positive number");
+  // YouTube search.list maxResults is 50
+  out.perQuery = Math.min(50, Math.max(1, Math.floor(out.perQuery)));
+  out.max = Math.min(500, Math.max(1, Math.floor(out.max))); // 安全ガード（将来拡張の余地）
   return out;
 }
 
-// ISO 8601 duration ("PT1M3S" etc.) -> seconds
-function parseISODurationToSec(iso) {
-  if (!iso || typeof iso !== "string") return null;
-  // PT#H#M#S
-  const m = iso.match(/^PT(?:(\d+)H)?(?:(\d+)M)?(?:(\d+)S)?$/);
-  if (!m) return null;
-  const h = m[1] ? Number(m[1]) : 0;
-  const mi = m[2] ? Number(m[2]) : 0;
-  const s = m[3] ? Number(m[3]) : 0;
-  return h * 3600 + mi * 60 + s;
+async function ytFetch(endpoint, params){
+  const key = process.env.YOUTUBE_API_KEY;
+  if (!key) die("Missing env: YOUTUBE_API_KEY");
+
+  const usp = new URLSearchParams({ ...params, key });
+  const url = `${API_BASE}/${endpoint}?${usp.toString()}`;
+  const res = await fetch(url);
+  if (!res.ok){
+    const text = await res.text().catch(()=> "");
+    throw new Error(`YouTube API error ${res.status}: ${text.slice(0,300)}`);
+  }
+  return await res.json();
 }
 
-function topicFromTitle(title) {
-  const t = (title || "").toLowerCase();
+function toISO(d){
+  return d.toISOString().replace(/\.\d{3}Z$/, "Z");
+}
 
-  const rules = [
-    { topic: "雑学", keys: ["雑学", "豆知識", "知らない", "知ってた", "意外", "保存"] },
-    { topic: "筋トレ", keys: ["筋トレ", "腹筋", "腕立て", "スクワット", "ダイエット", "脂肪", "ストレッチ"] },
-    { topic: "英語", keys: ["英語", "english", "発音", "フレーズ", "toeic"] },
-    { topic: "料理", keys: ["料理", "レシピ", "簡単", "レンジ", "作り方", "うまい"] },
-    { topic: "恋愛", keys: ["恋愛", "モテ", "彼女", "彼氏", "デート", "結婚"] },
-    { topic: "ライフハック", keys: ["裏技", "便利", "ライフハック", "時短", "節約", "神", "損"] },
-    { topic: "副業", keys: ["副業", "稼ぐ", "収益", "アフィ", "仕事", "在宅"] },
-    { topic: "エンタメ", keys: ["shorts", "切り抜き", "ドッキリ", "検証", "あるある", "爆笑"] },
-  ];
+function pickBestThumb(th){
+  if (!th) return null;
+  // maxres は存在しないことも多いので、high/standard/medium/default の順で
+  return (th.maxres && th.maxres.url) ||
+         (th.standard && th.standard.url) ||
+         (th.high && th.high.url) ||
+         (th.medium && th.medium.url) ||
+         (th.default && th.default.url) ||
+         null;
+}
 
-  for (const r of rules) {
-    for (const k of r.keys) {
-      if (t.includes(String(k).toLowerCase())) return r.topic;
-    }
-  }
+// ゆるいカテゴリ推定（MVP用途）
+function guessTopic(title, channelTitle){
+  const s = `${title || ""} ${channelTitle || ""}`.toLowerCase();
+
+  const has = (...words) => words.some(w => s.includes(w));
+
+  if (has("筋トレ","ダイエット","腹筋","腕立て","プロテイン","workout","fitness","diet")) return "筋トレ";
+  if (has("料理","レシピ","ごはん","飯","グルメ","cooking","recipe")) return "料理";
+  if (has("英語","english","toeic","発音","フレーズ")) return "英語";
+  if (has("恋愛","line","彼氏","彼女","カップル","片思い","告白","デート")) return "恋愛";
+  if (has("雑学","豆知識","知らない","ランキング","top","知ってた","トリビア","やばい理由")) return "雑学";
+  if (has("ライフハック","裏技","時短","便利","lifehack","hack")) return "ライフハック";
+
+  // コント/あるある/お笑い/エンタメ寄り
+  if (has("コント","あるある","お笑い","爆笑","comed","funny","meme","ネタ","ドッキリ","検証","vlog","ゲーム","実況")) return "エンタメ";
+
   return "未分類";
 }
 
-// ★ 日本語っぽさ（JP優先用）
-const JP_CHAR_RE = /[ぁ-んァ-ン一-龯]/;
-function isJapaneseLike(s) {
-  return JP_CHAR_RE.test(String(s || ""));
-}
-function calcJpScore(sn) {
-  // ざっくりでOK（重いAPI追加を避ける）
-  const title = sn?.title || "";
-  const ch = sn?.channelTitle || "";
-  const dal = String(sn?.defaultAudioLanguage || "").toLowerCase(); // e.g. "ja"
-  const dl = String(sn?.defaultLanguage || "").toLowerCase();
-
-  let score = 0;
-  if (isJapaneseLike(title)) score += 3;
-  if (isJapaneseLike(ch)) score += 2;
-  if (dal.startsWith("ja")) score += 3;
-  if (dl.startsWith("ja")) score += 1;
-
-  return score;
-}
-
-function pickThumbUrl(thumbnails) {
-  // 取れるものを優先順で
-  const t = thumbnails || {};
-  return (
-    t.maxres?.url ||
-    t.standard?.url ||
-    t.high?.url ||
-    t.medium?.url ||
-    t.default?.url ||
-    null
-  );
-}
-
-async function fetchJson(url, { retries = 3, delayMs = 400, debug = false } = {}) {
-  for (let attempt = 1; attempt <= retries; attempt++) {
-    const res = await fetch(url);
-    const text = await res.text();
-
-    if (res.ok) {
-      try {
-        return JSON.parse(text);
-      } catch (e) {
-        if (debug) console.error("JSON parse error:", text.slice(0, 200));
-        throw e;
-      }
-    }
-
-    // 403 quota / 429 rate limit などはリトライ
-    if ([403, 429, 500, 502, 503, 504].includes(res.status) && attempt < retries) {
-      if (debug) console.error(`HTTP ${res.status} retrying... attempt=${attempt}`);
-      await sleep(delayMs * attempt);
-      continue;
-    }
-
-    throw new Error(`HTTP ${res.status}: ${text.slice(0, 300)}`);
-  }
-  throw new Error("fetchJson failed after retries");
-}
-
-function chunk(arr, size) {
-  const out = [];
-  for (let i = 0; i < arr.length; i += size) out.push(arr.slice(i, i + size));
-  return out;
-}
-
-async function searchIds({ q, publishedAfterISO, perQuery, delayMs, debug }) {
-  // search.list: type=video, videoDuration=short（4分未満）で候補収集
-  // ※Shortsは厳密には60秒以下なので後段で duration<=60 に絞る
-  const params = new URLSearchParams({
-    key: API_KEY,
+async function searchIds({ q, publishedAfterISO, perQuery, regionCode="JP" }){
+  const js = await ytFetch("search", {
     part: "id",
     type: "video",
-    maxResults: String(perQuery),
-    order: "viewCount",
-    regionCode: "JP",
-    relevanceLanguage: "ja",
-    safeSearch: "none",
     videoDuration: "short",
+    order: "viewCount",
+    maxResults: String(perQuery),
+    regionCode,
+    relevanceLanguage: "ja",
     publishedAfter: publishedAfterISO,
+    q,
   });
-  if (q) params.set("q", q);
 
-  const url = `https://www.googleapis.com/youtube/v3/search?${params.toString()}`;
-  if (debug) console.log("search:", q, url);
-
-  const data = await fetchJson(url, { retries: 3, delayMs: 500, debug });
-  await sleep(delayMs);
-
+  const items = js.items || [];
   const ids = [];
-  for (const it of (data.items || [])) {
-    const vid = it?.id?.videoId;
+  for (const it of items){
+    const vid = it && it.id && it.id.videoId;
     if (vid) ids.push(vid);
   }
   return ids;
 }
 
-async function getVideoDetails(videoIds, { delayMs, debug }) {
-  // videos.list: snippet/statistics/contentDetails をまとめて取得
+async function fetchVideoDetails(ids){
+  if (ids.length === 0) return [];
+
+  // videos.list: 1回で最大50
+  const js = await ytFetch("videos", {
+    part: "snippet,statistics",
+    id: ids.join(","),
+    maxResults: "50",
+  });
+
   const out = [];
-  const groups = chunk(videoIds, 50);
-  for (const g of groups) {
-    const params = new URLSearchParams({
-      key: API_KEY,
-      part: "snippet,statistics,contentDetails",
-      id: g.join(","),
+  for (const v of (js.items || [])){
+    const video_id = v.id;
+    const sn = v.snippet || {};
+    const st = v.statistics || {};
+    const title = sn.title || "";
+    const channel_title = sn.channelTitle || "";
+    const publishedAt = sn.publishedAt ? Date.parse(sn.publishedAt) : null;
+
+    const thumbnail_url = pickBestThumb(sn.thumbnails);
+    const views = st.viewCount != null ? Number(st.viewCount) : null;
+
+    out.push({
+      video_id,
+      url: `https://www.youtube.com/shorts/${video_id}`,
+      title,
+      channel_title,
+      views,
+      published_at: sn.publishedAt || null,
+      published_ms: Number.isFinite(publishedAt) ? publishedAt : null,
+      thumbnail_url,
+      topic: guessTopic(title, channel_title),
     });
-    const url = `https://www.googleapis.com/youtube/v3/videos?${params.toString()}`;
-    if (debug) console.log("videos.list:", url);
-
-    const data = await fetchJson(url, { retries: 3, delayMs: 500, debug });
-    await sleep(delayMs);
-
-    for (const it of (data.items || [])) out.push(it);
   }
   return out;
 }
 
-function buildLatestJson(items) {
-  return {
-    updated_at: jstNowString(),
-    source: "youtube-data-api",
-    region: "JP",
-    strategy: "jp-priority",
-    items,
-  };
-}
+async function main(){
+  const args = parseArgs(process.argv);
+  const { max, hours, perQuery, selftest } = args;
 
-function validateLatestJson(obj) {
-  if (!obj || typeof obj !== "object") return "latest.json is not an object";
-  if (!obj.updated_at || !obj.source || !obj.region) return "missing meta fields";
-  if (!Array.isArray(obj.items)) return "items must be array";
-  for (const it of obj.items) {
-    if (!it.video_id || !it.url || !it.title) return "item missing required fields";
-    if (typeof it.views !== "number") return "views must be number";
-    // thumbnail_url は任意（無くてもOK）
-  }
-  return null;
-}
+  const now = Date.now();
+  const publishedAfterISO = toISO(new Date(now - hours * 3600 * 1000));
 
-async function main() {
-  if (!API_KEY) die("Missing env YOUTUBE_API_KEY. Set it in GitHub Actions Secrets.");
-
-  const opt = parseArgs();
-  const now = new Date();
-  const publishedAfter = new Date(now.getTime() - opt.lookbackHours * 3600 * 1000);
-  const publishedAfterISO = toIso(publishedAfter);
-
-  // 収集クエリ（“広く薄く”でOK）
+  // 200件を取りに行くので、クエリを増やして枯渇を防ぐ（JP優先・ただしガチガチにしない）
   const queries = [
+    // ベース
     "shorts",
+    "YouTube shorts",
+
+    // 日本寄り
+    "日本",
+    "あるある",
+    "コント",
     "切り抜き",
-    "雑学",
-    "ライフハック",
+    "検証",
+    "ドッキリ",
+    "料理",
+    "レシピ",
     "筋トレ",
     "ダイエット",
-    "料理",
+    "雑学",
+    "豆知識",
     "英語",
     "恋愛",
-    "検証",
-    "あるある",
+    "カップル",
+    "line",
+    "ライフハック",
+    "裏技",
+    "時短",
+    "便利",
+
+    // ジャンル拡張
+    "ゲーム",
+    "実況",
+    "アニメ",
+    "漫画",
+    "vtuber",
+    "kpop",
+    "音楽",
+    "解説",
+    "ランキング",
+    "top",
+    "衝撃",
+    "泣ける",
+    "感動",
   ];
 
   const idSet = new Set();
+  const ids = [];
 
-  for (const q of queries) {
-    const ids = await searchIds({
-      q,
-      publishedAfterISO,
-      perQuery: opt.perQuery,
-      delayMs: opt.delayMs,
-      debug: opt.debug,
-    });
-    ids.forEach(id => idSet.add(id));
-  }
+  for (const q of queries){
+    if (ids.length >= max) break;
 
-  const idsAll = Array.from(idSet);
-  if (opt.debug) console.log("collected ids:", idsAll.length);
-
-  if (idsAll.length === 0) {
-    die("No videos found. Try increasing --hours or adjusting queries.");
-  }
-
-  const details = await getVideoDetails(idsAll, { delayMs: opt.delayMs, debug: opt.debug });
-
-  const nowMs = Date.now();
-  const candidates = [];
-
-  for (const v of details) {
-    const id = v.id;
-    const sn = v.snippet || {};
-    const st = v.statistics || {};
-    const cd = v.contentDetails || {};
-
-    const title = sn.title || "";
-    const channelTitle = sn.channelTitle || "";
-    const publishedAt = sn.publishedAt ? Date.parse(sn.publishedAt) : null;
-
-    const durationSec = parseISODurationToSec(cd.duration);
-    if (durationSec == null) continue;
-
-    // Shorts簡易判定: 60秒以下
-    if (durationSec > 60) continue;
-
-    const views = Number(st.viewCount || 0);
-    if (!Number.isFinite(views)) continue;
-
-    const agoSec = publishedAt ? Math.max(0, Math.floor((nowMs - publishedAt) / 1000)) : null;
-
-    const thumbnailUrl = pickThumbUrl(sn.thumbnails);
-    const jpScore = opt.jpPriority ? calcJpScore(sn) : 0;
-
-    candidates.push({
-      video_id: id,
-      url: `https://www.youtube.com/shorts/${id}`,
-      title,
-      channel_title: channelTitle,
-      views,
-      published_ago_sec: agoSec,
-      topic: topicFromTitle(title),
-      thumbnail_url: thumbnailUrl || undefined,
-      _jp_score: jpScore, // デバッグ用（気になるなら後で消してOK）
-    });
-  }
-
-  // JP優先：まずJPスコア → 次に再生数
-  candidates.sort((a, b) => {
-    if (opt.jpPriority) {
-      const d = (b._jp_score ?? 0) - (a._jp_score ?? 0);
-      if (d !== 0) return d;
+    const got = await searchIds({ q, publishedAfterISO, perQuery, regionCode: "JP" });
+    for (const vid of got){
+      if (ids.length >= max) break;
+      if (idSet.has(vid)) continue;
+      idSet.add(vid);
+      ids.push(vid);
     }
-    return (b.views ?? 0) - (a.views ?? 0);
-  });
+  }
 
-  const top = candidates.slice(0, opt.maxItems).map(it => {
-    // _jp_score は出力から消す（必要なら残してもOK）
-    const { _jp_score, ...rest } = it;
-    return rest;
-  });
+  // まだ足りない場合は、クエリ無しで1回拾う（JP優先で広く）
+  if (ids.length < max){
+    const got = await searchIds({ q: "", publishedAfterISO, perQuery, regionCode: "JP" });
+    for (const vid of got){
+      if (ids.length >= max) break;
+      if (idSet.has(vid)) continue;
+      idSet.add(vid);
+      ids.push(vid);
+    }
+  }
 
-  const payload = buildLatestJson(top);
-  const err = validateLatestJson(payload);
-  if (err) die("latest.json validation failed: " + err);
+  // details 取得（50件ずつ）
+  const items = [];
+  for (let i=0; i<ids.length; i+=50){
+    const chunk = ids.slice(i, i+50);
+    const det = await fetchVideoDetails(chunk);
+    items.push(...det);
+  }
+
+  // published_ago_sec を付与
+  const outItems = items
+    .map(it => {
+      let published_ago_sec = null;
+      if (it.published_ms != null){
+        const diff = Math.max(0, Math.floor((now - it.published_ms) / 1000));
+        published_ago_sec = diff;
+      }
+      return {
+        video_id: it.video_id,
+        url: it.url,
+        title: it.title,
+        channel_title: it.channel_title,
+        views: it.views,
+        published_ago_sec,
+        topic: it.topic,
+        thumbnail_url: it.thumbnail_url || null,
+      };
+    })
+    // viewsが取れないものは後ろへ
+    .sort((a,b)=> (b.views ?? -1) - (a.views ?? -1))
+    .slice(0, max);
+
+  const jst = new Intl.DateTimeFormat("ja-JP", {
+    timeZone: "Asia/Tokyo",
+    year: "numeric", month: "2-digit", day: "2-digit",
+    hour: "2-digit", minute: "2-digit",
+    hour12: false
+  }).format(new Date());
+
+  const payload = {
+    updated_at: `${jst.replaceAll("/", "-").replace(" ", " ")} JST`,
+    source: "youtube-data-api",
+    region: "JP",
+    items: outItems
+  };
 
   const outPath = path.join(process.cwd(), "latest.json");
   fs.writeFileSync(outPath, JSON.stringify(payload, null, 2), "utf-8");
-  console.log("Wrote:", outPath, "items:", top.length);
+  console.log(`wrote ${outPath} items=${outItems.length}`);
 
-  if (opt.selftest) {
-    if (top.length === 0) die("selftest failed: no items");
-    const sample = top[0];
+  if (selftest){
+    if (!Array.isArray(outItems) || outItems.length === 0) die("selftest failed: no items");
+    const sample = outItems[0];
     console.log("selftest ok. sample:", {
       video_id: sample.video_id,
       views: sample.views,

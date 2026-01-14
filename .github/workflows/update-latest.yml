@@ -25,7 +25,7 @@ jobs:
       - name: Build latest.json (youtube)
         env:
           YOUTUBE_API_KEY: ${{ secrets.YOUTUBE_API_KEY }}
-        run: node scripts/build_latest_youtube.js --max 50 --hours 36 --perQuery 15 --selftest
+        run: node scripts/build_latest_youtube.js --max 200 --hours 36 --perQuery 25 --selftest
 
       - name: Commit & Push if changed
         run: |

@@ -15,19 +15,45 @@ function fmtAgeSec(sec){
   return `${Math.floor(s/86400)}日前`;
 }
 
+function escapeHtml(str){
+  return String(str)
+    .replaceAll("&", "&amp;")
+    .replaceAll("<", "&lt;")
+    .replaceAll(">", "&gt;")
+    .replaceAll('"', "&quot;")
+    .replaceAll("'", "&#39;");
+}
+
+function topicToClass(topic){
+  const t = (topic || "").trim();
+  if (!t) return "t-other";
+
+  if (t.includes("エンタメ")) return "t-ent";
+  if (t.includes("雑学")) return "t-zatsu";
+  if (t.includes("料理") || t.includes("グルメ")) return "t-cook";
+  if (t.includes("恋愛")) return "t-love";
+  if (t.includes("筋トレ") || t.includes("ダイエット") || t.includes("健康")) return "t-fit";
+  if (t.includes("英語")) return "t-eng";
+  if (t.includes("ライフハック")) return "t-life";
+
+  return "t-other";
+}
+
 let RAW = null;
 
 async function loadLatest(){
-  $("#headline").textContent = "読み込み中...";
-  $("#hint").textContent = "—";
+  $("#updatedAt").textContent = "更新: -";
+  
+  $("#countInfo").textContent = "表示: -";
 
-  const url = `./latest.json?t=${Date.now()}`; // cache-bust
+  // cache-bust
+  const url = `./latest.json?t=${Date.now()}`;
   const res = await fetch(url, { cache: "no-store" });
   if(!res.ok) throw new Error(`latest.json load failed: ${res.status}`);
   RAW = await res.json();
 
   $("#updatedAt").textContent = `更新: ${RAW.updated_at || "-"}`;
-  $("#sourceNote").textContent = `ソース: ${RAW.source || "—"}`;
+  
 
   render();
 }
@@ -53,23 +79,11 @@ function render(){
   if (sort === "age_asc"){
     items.sort((a,b)=> (a.published_ago_sec ?? 9e18) - (b.published_ago_sec ?? 9e18));
   } else {
-    // views_desc
     items.sort((a,b)=> (b.views ?? 0) - (a.views ?? 0));
   }
 
   const shown = items.slice(0, limit);
-
   $("#countInfo").textContent = `表示: ${shown.length} / ${items.length}（全体: ${RAW.items.length}）`;
-
-  // 今日の結論（雑に）
-  if (shown.length > 0){
-    const top = shown[0];
-    $("#headline").textContent = `今は「${top.topic || "この系統"}」が強い。まずは1本、これを真似て作る。`;
-    $("#hint").textContent = `上位は再生数で並べています。迷ったら1位の「タイトル構成」と「テンポ」をコピー。`;
-  } else {
-    $("#headline").textContent = "該当なし（フィルタ条件を緩めてください）";
-    $("#hint").textContent = "—";
-  }
 
   const root = $("#items");
   root.innerHTML = "";
@@ -77,24 +91,33 @@ function render(){
   shown.forEach((it, idx) => {
     const rank = idx + 1;
     const href = it.url || (it.video_id ? `https://www.youtube.com/shorts/${it.video_id}` : "#");
-    const thumb = it.thumbnail_url || "";
+
+    const thumb = it.thumbnail_url || ""; // null/undefined対策
+    const topic = it.topic || "未分類";
+    const topicCls = topicToClass(topic);
+
+    const rankCls =
+      rank === 1 ? "rank rank1" :
+      rank === 2 ? "rank rank2" :
+      rank === 3 ? "rank rank3" :
+      "rank";
 
     const el = document.createElement("div");
     el.className = "item";
     el.innerHTML = `
-      <div class="rank">${rank}</div>
+      <div class="${rankCls}">${rank}</div>
 
       <div class="thumbWrap">
-        ${thumb ? `<img class="thumb" src="${escapeHtml(thumb)}" alt="" loading="lazy" />` : `<div class="thumbPh"></div>`}
+        ${thumb ? `<img class="thumb" src="${escapeHtml(thumb)}" alt="" loading="lazy" />` : `<div class="thumb thumbPh"></div>`}
       </div>
 
       <div class="main">
-        <div class="title">${escapeHtml(it.title || "(no title)")}</div>
+        <div class="titleLine">${escapeHtml(it.title || "(no title)")}</div>
         <div class="meta2">
-          <span class="badge">${escapeHtml(it.topic || "未分類")}</span>
+          <span class="badge badgeTopic ${topicCls}">${escapeHtml(topic)}</span>
           <span class="badge">Ch: ${escapeHtml(it.channel_title || "-")}</span>
           <span class="badge">投稿: ${fmtAgeSec(it.published_ago_sec)}</span>
-          <span class="badge"><span class="views">${fmtNum(it.views)}</span> 再生</span>
+          <span class="badge badgeStrong"><span class="views">${fmtNum(it.views)}</span> 再生</span>
         </div>
       </div>
 
@@ -106,16 +129,7 @@ function render(){
   });
 }
 
-function escapeHtml(str){
-  return String(str)
-    .replaceAll("&", "&amp;")
-    .replaceAll("<", "&lt;")
-    .replaceAll(">", "&gt;")
-    .replaceAll('"', "&quot;")
-    .replaceAll("'", "&#39;");
-}
 
-$("#btnReload").addEventListener("click", () => loadLatest().catch(err => alert(err.message)));
 $("#limitSelect").addEventListener("change", render);
 $("#sortSelect").addEventListener("change", render);
 $("#qInput").addEventListener("input", () => {
@@ -125,6 +139,5 @@ $("#qInput").addEventListener("input", () => {
 
 loadLatest().catch(err => {
   console.error(err);
-  $("#headline").textContent = "読み込み失敗";
-  $("#hint").textContent = err.message;
+  alert(err.message);
 });

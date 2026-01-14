@@ -6,87 +6,77 @@
   <title>今日、何を真似ればいいか</title>
   <meta name="description" content="今日・今伸びているYouTube Shorts（JP）をランキング表示。市場調査をゼロに。" />
   <link rel="stylesheet" href="./assets/style.css" />
+  <meta name="theme-color" content="#ffffff" />
 </head>
-
 <body>
-  <header class="siteHeader">
+  <header class="header">
     <div class="container headerInner">
       <div class="brand">
-        <div class="ytMark" aria-hidden="true">
-          <div class="ytPlay"></div>
-        </div>
+        <div class="logo" aria-hidden="true"></div>
         <div class="brandText">
-          <div class="brandTitle">今日、何を真似ればいいか</div>
-          <div class="brandSub">YouTube Shorts（JP）・再生数ランキング / 1日2回更新</div>
+          <h1 class="title">👑YouTube Shortsランキング👑</h1>
+          <p class="sub">YouTube Shorts（JP）・再生数ランキング / 1日2回更新</p>
         </div>
       </div>
 
-      <div class="headerActions">
-        <button id="btnReload" class="btn btnPrimary" type="button">再読み込み</button>
-        <a class="btn btnGhost" href="./latest.json" target="_blank" rel="noopener">latest.jsonを見る</a>
-      </div>
+
     </div>
   </header>
 
   <main class="container">
-    <section class="topCard">
-      <div class="metaRow">
-        <div class="metaLeft">
-          <span id="updatedAt">更新: -</span>
-          <span class="dot">•</span>
-          <span id="sourceNote">ソース: -</span>
-        </div>
-        <div id="countInfo" class="metaRight">表示: -</div>
+    <div class="metaLine">
+      <div class="metaText">
+        <span id="updatedAt">更新: -</span>
+        <span class="dot">•</span>
+        
       </div>
-
-      <div class="notice">
-        注意: これは分析ツールではなく「真似先を即決する」ためのスコップです。細かい精度は追いません。
+      <div class="metaText">
+        <span id="countInfo">表示: -</span>
       </div>
+    </div>
 
-      <div class="grid2">
-        <div class="panel">
-          <div class="panelTitle">フィルタ</div>
 
-          <div class="controls">
-            <label class="field">
-              <span class="label">表示件数</span>
-              <select id="limitSelect">
-                <option value="10">10</option>
-                <option value="20" selected>20</option>
-                <option value="50">50</option>
-              </select>
-            </label>
 
-            <label class="field">
-              <span class="label">並び</span>
-              <select id="sortSelect">
-                <option value="views_desc" selected>再生数（多い順）</option>
-                <option value="age_asc">投稿が新しい順</option>
-              </select>
-            </label>
+    <section class="card">
+      <div class="cardTitle">フィルタ</div>
+      <div class="filterRow">
+        <label class="field">
+          <span class="label">表示件数</span>
+          <select id="limitSelect" class="control">
+            <option value="20" selected>20</option>
+            <option value="50">50</option>
+            <option value="100">100</option>
+            <option value="200">200</option>
+          </select>
+        </label>
 
-            <label class="field fieldWide">
-              <span class="label">キーワード</span>
-              <input id="qInput" type="text" placeholder="例: 雑学 / 筋トレ / 英語 / 料理" />
-            </label>
-          </div>
-        </div>
+        <label class="field">
+          <span class="label">並び</span>
+          <select id="sortSelect" class="control">
+            <option value="views_desc" selected>再生数（多い順）</option>
+            <option value="age_asc">投稿が新しい順</option>
+          </select>
+        </label>
 
-        <div class="panel">
-          <div class="panelTitle">今日の結論</div>
-          <div id="headline" class="headline">読み込み中...</div>
-          <div id="hint" class="hint">—</div>
-        </div>
+        <label class="field">
+          <span class="label">キーワード</span>
+          <input id="qInput" class="control" type="text" placeholder="例: 雑学 / 筋トレ / 英語 / 料理" />
+        </label>
       </div>
     </section>
 
-    <section class="listCard">
-      <div class="sectionTitle">ランキング</div>
+    <section class="card listCard">
+      <div class="listHeader">
+        <h2 class="listTitle">ランキング</h2>
+      </div>
+
       <div id="items" class="items"></div>
 
-      <footer class="footer">
-        クリックでYouTubeへ遷移します。<span class="muted">（MVP: まだ未実装でOK）</span>
-      </footer>
+      <div class="footer">
+        <div class="footNote">
+          クリックでYouTubeへ遷移します。<span class="muted"></span>
+        </div>
+      </div>
     </section>
   </main>
 
