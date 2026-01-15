@@ -3,9 +3,14 @@ name: update-latest-json
 on:
   workflow_dispatch:
   schedule:
-    # JST 09:00 / 21:00 相当（UTC 00:00 / 12:00）
     - cron: "0 0 * * *"
+    - cron: "0 6 * * *"
     - cron: "0 12 * * *"
+    - cron: "0 18 * * *"
+
+concurrency:
+  group: update-latest-json
+  cancel-in-progress: true
 
 permissions:
   contents: write
@@ -25,7 +30,7 @@ jobs:
       - name: Build latest.json (youtube)
         env:
           YOUTUBE_API_KEY: ${{ secrets.YOUTUBE_API_KEY }}
-        run: node scripts/build_latest_youtube.js --max 200 --hours 36 --perQuery 25 --selftest
+        run: node scripts/build_latest_youtube.js --max 200 --hours 36 --perQuery 25
 
       - name: Commit & Push if changed
         run: |
