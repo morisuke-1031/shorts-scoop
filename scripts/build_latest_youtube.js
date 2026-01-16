@@ -277,25 +277,50 @@ function autoJpMinByJstHour() {
 
 function pickWithTieredJpFilter(sortedCandidates, maxItems, jpMinBase) {
   // 段階的にjpScore閾値を緩めながら maxItems を満たす
-  // 例: base=3 -> [3,2,1,0] の順で埋める
+  // ただし "0 まで落とす" と海外が混ざるので、floor で最低ラインを固定する
+  // 例: base=3, floor=2 -> [3,2] の順で埋める（海外混入しにくい）
   const tiers = [];
   const base = Math.max(0, Math.min(10, jpMinBase ?? 2));
-  for (let t = base; t >= 0; t--) tiers.push(t);
+
+  // ★ここが肝：最低ライン（1〜3で調整）
+  const floor = 2;
+
+  for (let t = base; t >= floor; t--) tiers.push(t);
 
   const picked = [];
   const usedIds = new Set();
 
+  // ★見える化ログ（不要なら console.log 行を消してOK）
+  console.log("[JP FILTER] base =", base, "floor =", floor, "tiers =", tiers);
+
   for (const tier of tiers) {
+    let addedThisTier = 0;
+
     for (const it of sortedCandidates) {
       if (picked.length >= maxItems) break;
       const jp = it._jp_score ?? 0;
       if (jp < tier) continue;
       if (usedIds.has(it.video_id)) continue;
+
       usedIds.add(it.video_id);
       picked.push(it);
+      addedThisTier++;
     }
+
+    console.log(
+      `[JP FILTER] tier >= ${tier}: +${addedThisTier}, total=${picked.length}`
+    );
+
     if (picked.length >= maxItems) break;
   }
+
+  // floor を上げると件数が足りないことがあるので、ここで最終件数が見える
+  console.log(
+    `[JP FILTER] result: picked=${picked.length}/${maxItems} (missing=${Math.max(
+      0,
+      maxItems - picked.length
+    )})`
+  );
 
   return { picked, tiersUsed: tiers };
 }
