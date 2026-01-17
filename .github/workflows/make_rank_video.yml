@@ -1,0 +1,40 @@
+name: make-rank-video
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: "0 1,13 * * *"   # JST 10:00 / 22:00
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install ffmpeg
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y ffmpeg
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Generate rank video
+        run: |
+          python scripts/make_rank_video.py \
+            --latest_json latest.json \
+            --bg Automovei/bg.wmv \
+            --bgm Automovei/bgm.wav \
+            --out Automovei/out/rank.mp4 \
+            --seconds 15
+
+      - name: Upload artifact (debug)
+        uses: actions/upload-artifact@v4
+        with:
+          name: rank-video
+          path: Automovei/out/rank.mp4
+          retention-days: 3
