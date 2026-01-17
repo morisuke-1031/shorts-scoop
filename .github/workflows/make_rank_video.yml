@@ -3,7 +3,8 @@ name: make-rank-video
 on:
   workflow_dispatch:
   schedule:
-    - cron: "0 1,13 * * *"   # JST 10:00 / 22:00
+    # JST 10:00 / 22:00（UTC 01:00 / 13:00）
+    - cron: "0 1,13 * * *"
 
 jobs:
   build:
@@ -23,6 +24,14 @@ jobs:
         with:
           python-version: "3.11"
 
+      # ★ ここが追加ポイント（Release assets を取得）
+      - name: Download assets
+        run: |
+          mkdir -p Automovei
+          curl -L -o Automovei/bg.wmv  "${{ secrets.BG_URL }}"
+          curl -L -o Automovei/bgm.wav "${{ secrets.BGM_URL }}"
+          ls -la Automovei
+
       - name: Generate rank video
         run: |
           python scripts/make_rank_video.py \
@@ -32,6 +41,7 @@ jobs:
             --out Automovei/out/rank.mp4 \
             --seconds 15
 
+      # デバッグ用（数日で自動削除）
       - name: Upload artifact (debug)
         uses: actions/upload-artifact@v4
         with:
