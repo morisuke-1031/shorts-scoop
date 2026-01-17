@@ -3,14 +3,27 @@ name: make-rank-video
 on:
   workflow_dispatch:
   schedule:
-    # JST 10:00 / 22:00（UTC 01:00 / 13:00）
-    - cron: "0 1,13 * * *"
+    - cron: "0 1,13 * * *"   # JST 10:00 / 22:00（UTC 01:00 / 13:00）
 
 jobs:
   build:
     runs-on: ubuntu-latest
 
     steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Debug workspace
+        run: |
+          echo "PWD:"
+          pwd
+          echo "LS root:"
+          ls -la
+          echo "LS scripts:"
+          ls -la scripts || true
+          echo "Find make_rank_video.py:"
+          find . -maxdepth 4 -type f -name "make_rank_video.py" -print
+
       - name: Install ffmpeg
         run: |
           sudo apt-get update
@@ -21,13 +34,6 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y fonts-noto-cjk
 
-      - name: Setup Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: "3.11"
-
-
-      # ★ ここが追加ポイント（Release assets を取得）
       - name: Download assets
         run: |
           mkdir -p Automovei
@@ -37,21 +43,13 @@ jobs:
 
       - name: Generate rank video
         run: |
-          python scripts/make_rank_video.py \
-            --latest_json latest.json \
-            --bg Automovei/bg.wmv \
-            --bgm Automovei/bgm.wav \
-            --out Automovei/out/rank.mp4 \
+          python ./scripts/make_rank_video.py \
+            --latest_json ./latest.json \
+            --bg ./Automovei/bg.wmv \
+            --bgm ./Automovei/bgm.wav \
+            --out ./Automovei/out/rank.mp4 \
             --seconds 15
-        
-      - name: Debug workspace
-        run: |
-          pwd
-          ls -la
-          ls -la scripts || true
-          find . -maxdepth 3 -type f -name "make_rank_video.py" -print
 
-      # デバッグ用（数日で自動削除）
       - name: Upload artifact (debug)
         uses: actions/upload-artifact@v4
         with:
