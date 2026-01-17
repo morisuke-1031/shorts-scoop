@@ -43,6 +43,13 @@ jobs:
             --bgm Automovei/bgm.wav \
             --out Automovei/out/rank.mp4 \
             --seconds 15
+        
+      - name: Debug workspace
+        run: |
+          pwd
+          ls -la
+          ls -la scripts || true
+          find . -maxdepth 3 -type f -name "make_rank_video.py" -print
 
       # デバッグ用（数日で自動削除）
       - name: Upload artifact (debug)
