@@ -7,6 +7,11 @@
 // - JPスコアで段階フィルタ（足りなければ閾値を下げて埋める）
 // - JST時刻で“強め度”を自動調整（朝は強め / 夜は少し緩め）
 // - --jpMin / --jpMode / --noAutoJp で制御可能
+//
+// 2026-01-XX: SEO対策（最小変更）
+// - index.html の <!-- build: ... --> コメントを毎回更新して「HTMLも更新」をGoogleに伝える
+//   ※見た目は変わらない。index.html に以下を1行入れておくこと：
+//     <!-- build: 0000-00-00T00:00:00+09:00 -->
 
 const fs = require("fs");
 const path = require("path");
@@ -28,6 +33,36 @@ function jstNow() {
 function jstNowString() {
   const d = jstNow();
   return `${d.getUTCFullYear()}-${pad(d.getUTCMonth() + 1)}-${pad(d.getUTCDate())} ${pad(d.getUTCHours())}:${pad(d.getUTCMinutes())} JST`;
+}
+
+// ★追加：index.html の build コメント更新用（ISO風 / JST固定）
+function jstIsoString() {
+  const d = jstNow();
+  return `${d.getUTCFullYear()}-${pad(d.getUTCMonth() + 1)}-${pad(d.getUTCDate())}T${pad(d.getUTCHours())}:${pad(d.getUTCMinutes())}:${pad(d.getUTCSeconds())}+09:00`;
+}
+
+// ★追加：index.html の <!-- build: ... --> を毎回更新（見た目は変わらない）
+function touchIndexBuildTag() {
+  const indexPath = path.join(process.cwd(), "index.html");
+  if (!fs.existsSync(indexPath)) {
+    console.log("[touchIndexBuildTag] skip: index.html not found:", indexPath);
+    return;
+  }
+
+  let html = fs.readFileSync(indexPath, "utf-8");
+  const now = jstIsoString();
+
+  const re = /<!--\s*build:\s*[^>]*?\s*-->/;
+  if (re.test(html)) {
+    html = html.replace(re, `<!-- build: ${now} -->`);
+  } else if (html.includes("</head>")) {
+    html = html.replace("</head>", `  <!-- build: ${now} -->\n</head>`);
+  } else {
+    html += `\n<!-- build: ${now} -->\n`;
+  }
+
+  fs.writeFileSync(indexPath, html, "utf-8");
+  console.log("[touchIndexBuildTag] updated:", now);
 }
 
 function toIso(d) { return d.toISOString(); }
@@ -463,6 +498,9 @@ async function main() {
   const outPath = path.join(process.cwd(), "latest.json");
   fs.writeFileSync(outPath, JSON.stringify(payload, null, 2), "utf-8");
   console.log("Wrote:", outPath, "items:", top.length, "candidates:", candidates.length);
+
+  // ★追加：index.html の build コメント更新（SEO向け・見た目変わらず）
+  touchIndexBuildTag();
 
   if (opt.selftest) {
     if (top.length === 0) die("selftest failed: no items");
